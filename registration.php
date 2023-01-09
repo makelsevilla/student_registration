@@ -11,9 +11,84 @@
   // Supporting Documents
   $schoolRegForm = $schoolId = $proofOfRes = $birthCert = '';
 
+  // Error Variables
+  $schoolIdErr = $studentNoErr = $programIdErr = $lastNameErr = $firstNameErr = $middleNameErr = $birthDateErr = $genderErr = $barangayErr = $municipalityErr = $provinceErr = $contactNoErr = $emailErr = '';
+  $schoolRegFormErr = $schoolIdErr = $proofOfResErr = $birthCertErr = '';
+
   // Handle Registration
   if (isset($_POST['register'])) {
+    // Assign and sanitize variables value from $_POST
+    $schoolId = sanitizeInput($_POST['schoolId']);
+    $studentNo = sanitizeInput($_POST['studentNo']);
+    $programId = sanitizeInput($_POST['programId']);
+    $lastName = sanitizeInput($_POST['lastName']);
+    $firstName = sanitizeInput($_POST['firstName']);
+    $middleName = sanitizeInput($_POST['middleName']);
+    $birthDate = sanitizeInput($_POST['birthDate']); // String
+    $gender = sanitizeInput($_POST['gender']);
+    $barangay = sanitizeInput($_POST['barangay']);
+    $municipality = sanitizeInput($_POST['municipality']);
+    $province = sanitizeInput($_POST['province']);
+    $contactNo = sanitizeInput($_POST['contactNo']);
+    $email = sanitizeInput($_POST['email']);
+
+    /* Validate Inputs */
+    // Validate schoolId
+    $inSchools = false;
+    foreach($schools as $school) {
+      if ($school['id'] == $schoolId) {
+        $inSchools = true;
+      }
+    }
+    if (! $inSchools) {
+      $schoolIdErr = 'Invalid School. Please select a valid one.';
+    }
+
+    // Validate programId
+    $inPrograms = false;
+    foreach($programs as $program) {
+      if ($program['id'] == $programId) {
+        $inPrograms = true;
+      }
+    }
+    if (! $inPrograms) {
+      $schoolIdErr = 'Invalid Course Program. Please select a valid one.';
+    }
+
+    // validate birthDate
+    $validBirthDate = validateDate($birthDate);
+    if (! $validBirthDate) {
+      $birthDateErr = 'Invalid Birthdate. Please Choose a valid one.';
+    }
+
+    // Validate gender
+    if (($gender == 'F' || $gender == 'M')) {
+      $genderErr = 'Invalid Gender. Choose F or M only.';
+    }
+
+    // Validate phone no
+    if (! preg_match("/^09[0-9]{9}$/", $contactNo)) {
+      $contactNoErr = 'Invalid Mobile Number. Please input a valid one.';
+    }
+
+    // Validate email
+    if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+      $emailErr = 'Invalid email address.';
+    }
+
+  }
+
+  function validateDate($date, $format = 'Y-m-d') {
+    $d = DateTime::createFromFormat($format, $date);
+    return $d && $d->format($format) === $date;
+  }
+
+  function sanitizeInput($input) {
+    $input = trim($input);
+    $input = stripslashes($input);
+    $input = htmlspecialchars($input);
     
+    return $input;
   }
 ?>
 
@@ -31,7 +106,7 @@
   <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
     <p>Student Information</p>
     <label for="school">School Name</label>
-    <select name="school" id="school">
+    <select name="schoolId" id="school">
       <option value="" default></option>  
       <?php foreach($schools as $school): ?>
         <option value="<?php echo $school['id']; ?>"><?php echo $school['name']; ?></option>
@@ -42,7 +117,7 @@
     <input type="text" name="studentNo" id="studentNo" />
 
     <label for="program">Program Name</label>
-    <select name="program" id="program">
+    <select name="programId" id="program">
       <option value="" default></option>
       <?php foreach($programs as $program): ?>
         <option value="<?php echo $program['id']; ?>"><?php echo $program['name']; ?></option>
@@ -58,7 +133,7 @@
     <input type="date" name="birthDate" id="birthDate" />
 
     <label>Gender</label>
-    <input type="radio" name="gender" id="male" value="M"/>
+    <input type="radio" name="gender" id="male" value="M" checked/>
     <label for="male">Male</label>
     <input type="radio" name="gender" id="female" value="F"/>
     <label for="female">Female</label>
@@ -76,16 +151,16 @@
     
     <p>Supporting Documents</p>
     <label>School Registration Form</label>
-    <input type="file" name="schoolRegForm" />
+    <input type="file" name="schoolRegForm" enctype="multipart/form-data" />
     
     <label>School ID</label>
-    <input type="file" name="schoolId" />
+    <input type="file" name="schoolId" enctype="multipart/form-data" />
 
     <label>Proof of Residence</label>
-    <input type="file" name="proofOfRes" />
+    <input type="file" name="proofOfRes" enctype="multipart/form-data" />
 
     <label for="">Birth Certificate</label>
-    <input type="file" name="birthCert" />
+    <input type="file" name="birthCert" enctype="multipart/form-data" />
     
     <input type="submit" name="register" value="Register" />
   </form>
